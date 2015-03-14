@@ -38,7 +38,7 @@ knitr::opts_chunk$set(comment=NA, fig.path='figure/', echo=TRUE, warning=FALSE, 
 ```
 
 ## What is mean total number of steps taken per day?
-The first analysis performed on the data was to find the total number of steps per day, and look at the results in a histogram, and evaluate the mean and median values.  Because the mean and median values are so close, it is hard to distinguish them on the graph.  The actual numbers are shown below the graph.
+The first analysis performed on the data was to find the total number of steps per day, and look at the results in a histogram, and evaluate the mean and median values.  Because the mean and median values are so close, it is hard to distinguish them on the graph.  The actual mean and median values are shown below the graph.
 
 
 ```r

@@ -77,7 +77,7 @@ library(scales)</code></pre>
 </div>
 <div id="what-is-mean-total-number-of-steps-taken-per-day" class="section level2">
 <h2>What is mean total number of steps taken per day?</h2>
-<p>The first analysis performed on the data was to find the total number of steps per day, and look at the results in a histogram, and evaluate the mean and median values. Because the mean and median values are so close, it is hard to distinguish them on the graph. The actual numbers are shown below the graph.</p>
+<p>The first analysis performed on the data was to find the total number of steps per day, and look at the results in a histogram, and evaluate the mean and median values. Because the mean and median values are so close, it is hard to distinguish them on the graph. The actual mean and median values are shown below the graph.</p>
 <pre class="r"><code>grp &lt;- filter(activity,!is.na(activity$steps))
 grp &lt;- group_by(grp, date)
 grp &lt;- summarise_each(grp, funs(sum), steps)
