@@ -2,7 +2,7 @@
 
 
 ## Loading and preprocessing the data
-These steps will unzip the data file and read the data in R.  Because the zipped file already exists in the directory, no additional steps were needed to download the file.
+These steps will unzip the data file and read the data in R.  Because the zipped file already exists in the directory, no additional steps were needed to download the file.  Just to get a sense of the data set that is involved, a snippet is displayed here.
 
 
 ```r
@@ -30,7 +30,7 @@ library(ggplot2)
 library(scales)
 ```
 
-Certain configurations for the knitr package will help to save figures appropriately.
+Certain global configurations for the knitr package will help to save figures appropriately, and display the R code and results as needed.
 
 
 ```r
@@ -38,35 +38,37 @@ knitr::opts_chunk$set(comment=NA, fig.path='figure/', echo=TRUE, warning=FALSE, 
 ```
 
 ## What is mean total number of steps taken per day?
-The first analysis performed on the data was to find the total number of steps per day, and look a the results in a histogram.
+The first analysis performed on the data was to find the total number of steps per day, and look at the results in a histogram, and evaluate the mean and median values.  Because the mean and median values are so close, it is hard to distinguish them on the graph.  The actual numbers are shown below the graph.
 
 
 ```r
-sumSteps <- tapply(activity$steps, activity$date, sum, na.rm=TRUE)
+grp <- filter(activity,!is.na(activity$steps))
+grp <- group_by(grp, date)
+grp <- summarise_each(grp, funs(sum), steps)
 
-hist(sumSteps, main ="Histogram of Total Steps per Day", xlab = "Total Steps", 
+hist(grp$steps, main ="Histogram of Total Steps per Day", xlab = "Total Steps", 
      col = "cornsilk")
-abline(v = mean(sumSteps), col = "midnightblue", lwd = 2)
-abline(v = median(sumSteps), col = "mediumvioletred", lwd = 2)
+abline(v = mean(grp$steps), col = "midnightblue", lwd = 2)
+abline(v = median(grp$steps), col = "mediumvioletred", lwd = 2)
 legend(x = "topright", c("Mean", "Median"), col = c("midnightblue", "mediumvioletred"), lwd = c(2,2))
 ```
 
 ![](figure/plot1-1.png) 
 
 ```r
-mean(sumSteps)
+mean(grp$steps)
 ```
 
 ```
-[1] 9354.23
+[1] 10766.19
 ```
 
 ```r
-median(sumSteps)
+median(grp$steps)
 ```
 
 ```
-[1] 10395
+[1] 10765
 ```
 
 ## What is the average daily activity pattern?
@@ -96,7 +98,8 @@ sprintf("%04d", as.numeric(names(which(avgSteps==max(avgSteps)))))
 ```
 
 ## Imputing missing values
-There are a number of missing (NA) values the steps column in the original data set. 
+There are a number of missing (NA) values the steps column in the original data set - 2304 to be exact.
+
 
 ```r
 length(which(is.na(activity$steps)))
@@ -106,7 +109,7 @@ length(which(is.na(activity$steps)))
 [1] 2304
 ```
 
-To understand the bias of these values on the calculations, a new data set was created that replaces the NA values for a given interval by the average for that interval across all days. This uses the average values from the previous analysis, and these were spread across each day in order to be used as replacement values.  The columns in the new data set look the same as the original data set, but the NAs have all been replaced, as shown by the output below. 
+To understand the bias of these values on the calculations, a new data set was created that replaces the NA values for a given interval by the average for that interval across all days. This uses the average interval values from the previous analysis, and these were spread across each day in order to be used as replacement values.  The columns in the new data set look the same as the original data set, but the NAs have all been replaced, as shown by the output below. 
 
 
 ```r
@@ -121,7 +124,7 @@ length(which(is.na(newActivity$steps)))
 [1] 0
 ```
 
-The impact of this on total number of steps per day as well as the mean and median values is fairly significant from the original data set. The original data set has a much wider variation between mean and median (9345 and 10395 respectively), while they are almost identical in the new data set.
+The impact of this on total number of steps per day as well as the mean and median values is not that significant from the original data set. The original data set had almost identical mean and median values - about a 1 step difference.  In the revised data set, there is slightly more variation - about 3 steps. The method used to replace the NA values could have caused this lack of difference in the data sets.  If an interval had many NA values across all days, the average for that interval is likely to be very small as well. Using a daily average as the NA replacement value could have created more variation. 
 
 
 ```r
