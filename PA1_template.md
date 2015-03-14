@@ -1,15 +1,11 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 These steps will unzip the data file and read the data in R.  Because the zipped file already exists in the directory, no additional steps were needed to download the file.
 
-```{r}
+
+```r
 temp <- "activity.zip"
 unzip(temp)
 activity <- read.csv("activity.csv", na.strings = "NA")
@@ -17,9 +13,17 @@ activity <- read.csv("activity.csv", na.strings = "NA")
 str(activity)
 ```
 
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
 In order to complete the subsequent analyses, certain R packages will be required.  The code below will load them.
 
-```{r library,message=FALSE}
+
+```r
 library(plyr)
 library(dplyr)
 library(ggplot2)
@@ -28,14 +32,16 @@ library(scales)
 
 Certain configurations for the knitr package will help to save figures appropriately.
 
-```{r global_opt, include=TRUE}
+
+```r
 knitr::opts_chunk$set(comment=NA, fig.path='figure/', echo=TRUE, warning=FALSE, message=FALSE)
 ```
 
 ## What is mean total number of steps taken per day?
 The first analysis performed on the data was to find the total number of steps per day, and look a the results in a histogram.
 
-```{r plot1}
+
+```r
 sumSteps <- tapply(activity$steps, activity$date, sum, na.rm=TRUE)
 
 hist(sumSteps, main ="Histogram of Total Steps per Day", xlab = "Total Steps", 
@@ -43,15 +49,31 @@ hist(sumSteps, main ="Histogram of Total Steps per Day", xlab = "Total Steps",
 abline(v = mean(sumSteps), col = "midnightblue", lwd = 2)
 abline(v = median(sumSteps), col = "mediumvioletred", lwd = 2)
 legend(x = "topright", c("Mean", "Median"), col = c("midnightblue", "mediumvioletred"), lwd = c(2,2))
+```
 
+![](figure/plot1-1.png) 
+
+```r
 mean(sumSteps)
+```
+
+```
+[1] 9354.23
+```
+
+```r
 median(sumSteps)
+```
+
+```
+[1] 10395
 ```
 
 ## What is the average daily activity pattern?
 The next analysis looked at the average daily activity patterns to see if more steps were taken at a specific time of day.  The data was recorded in 5 minute intervals for the entire day, and the plot below shows the average number of steps for each interval, across all of the days in the data set.
 
-```{r plot2}
+
+```r
 avgSteps <- tapply(activity$steps, activity$interval, mean, na.rm=TRUE)
 interval <- unique(
         strptime(formatC(activity$interval, width = 4, format = "d", flag = "0"), format = "%H%M"))
@@ -60,21 +82,34 @@ plot(interval, avgSteps, type = "l", main = "Daily Activity Pattern",
      xlab = "Interval", ylab ="Avg # of Steps")
 ```
 
+![](figure/plot2-1.png) 
+
 The interval with the highest average number of steps across all days is "0835", or 8:35 am. 
 
-```{r maxinterval}
+
+```r
 sprintf("%04d", as.numeric(names(which(avgSteps==max(avgSteps)))))
+```
+
+```
+[1] "0835"
 ```
 
 ## Imputing missing values
 There are a number of missing (NA) values the steps column in the original data set. 
-```{r}
+
+```r
 length(which(is.na(activity$steps)))
+```
+
+```
+[1] 2304
 ```
 
 To understand the bias of these values on the calculations, a new data set was created that replaces the NA values for a given interval by the average for that interval across all days. This uses the average values from the previous analysis, and these were spread across each day in order to be used as replacement values.  The columns in the new data set look the same as the original data set, but the NAs have all been replaced, as shown by the output below. 
 
-```{r}
+
+```r
 newValue <- round(rep(as.vector(unlist(avgSteps)), times = 61), digits = 0)
 newActivity <- cbind(activity, newValue)
 newActivity$steps <- ifelse(is.na(newActivity$steps), newActivity$newValue, newActivity$steps)
@@ -82,9 +117,14 @@ newActivity <- select(newActivity, 1:3)
 length(which(is.na(newActivity$steps)))
 ```
 
+```
+[1] 0
+```
+
 The impact of this on total number of steps per day as well as the mean and median values is fairly significant from the original data set. The original data set has a much wider variation between mean and median (9345 and 10395 respectively), while they are almost identical in the new data set.
 
-```{r plot3, fig.width=6}
+
+```r
 newSteps <- tapply(newActivity$steps, newActivity$date, sum)
 
 hist(newSteps, main ="Histogram of Total Steps per Day - Imputed Values", 
@@ -92,15 +132,31 @@ hist(newSteps, main ="Histogram of Total Steps per Day - Imputed Values",
 abline(v = mean(newSteps), col = "midnightblue", lwd = 2)
 abline(v = median(newSteps), col = "mediumvioletred", lwd = 2)
 legend(x = "topright", c("Mean", "Median"), col = c("midnightblue", "mediumvioletred"), lwd = c(2,2))
+```
 
+![](figure/plot3-1.png) 
+
+```r
 mean(newSteps)
+```
+
+```
+[1] 10765.64
+```
+
+```r
 median(newSteps)
+```
+
+```
+[1] 10762
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 In order to analyze activity patterns between weekdays and weekends, new data needs to be attributed to the data set in order look at this.  For this analysis, the new data set with imputed values to replace the NA values is used.
 
-```{r plot4}
+
+```r
 newActivity$days <- weekdays(as.Date(newActivity$date))
 newActivity$dayType <- as.factor(ifelse(newActivity$days %in% c("Saturday", "Sunday"), 
                                         "weekend", "weekday"))
@@ -124,5 +180,7 @@ p + geom_line(col = "dodgerblue") +
         labs(title = "Avg Steps per Interval - Weekday vs. Weekend") +
         scale_x_datetime(labels = date_format("%H:%M"), breaks = date_breaks("2 hours"))
 ```
+
+![](figure/plot4-1.png) 
 
 In looking at the graph above, it appears as though the activity on the weekends is higher during the middle of the day than it is on weekdays.  On the weekdays, there is a spike of activity in the morning, but less activity throughout the middle of the day.  The weekdays may have the highest average, but the weekends show more periods where the interval average is above 100 steps.
